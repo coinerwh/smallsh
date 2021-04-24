@@ -1,5 +1,7 @@
 // main smallsh function declarations
 
 struct userCommand* parseUserInput(char* input);
-char *getUserInput();
+char* getUserInput();
+void cleanupStruct(struct userCommand* currStruct);
+void inputHandler(struct userCommand* currCommand)
 void smallsh();

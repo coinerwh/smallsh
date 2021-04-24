@@ -8,15 +8,29 @@
 #include "command_struct.h"
 
 /*
-    main smallsh.c driver function and user input functions
+    main smallsh.c driver and input handler functions
 */
 
+// frees struct member memory
+void cleanupStruct(struct userCommand* currStruct)
+{
+    free(currStruct->command);
+    currStruct->command = 0;
+    free(currStruct->args);
+    currStruct->args = 0;
+    free(currStruct->inputFile);
+    currStruct->inputFile = 0;
+    free(currStruct->outputFile);
+    currStruct->outputFile = 0;
+    currStruct->backgroundBool = 0;
+}
 
 /* parses user input and stores elements in struct */
 struct userCommand* parseUserInput(char* input)
 {
+    printf("%s\n", input);
     // handle blank line
-    if (strlen(input) == 0)
+    if (strcmp(input, "\0") == 0)
     {
         return NULL;
     }
@@ -30,62 +44,64 @@ struct userCommand* parseUserInput(char* input)
     char *token = strtok_r(input, " ", &saveptr);
     currCommand->command = calloc(strlen(token) + 1, sizeof(char));
     strcpy(currCommand->command, token);
-    printf("struct: %s\n", currCommand->command);
 
-    printf("token: %s\n", token);
+    // //initialize args string array
+    currCommand->args = calloc(strlen("\0") + 1, sizeof(char));
+    strcpy(currCommand->args, "\0");
 
+    // start from next argument
+    token = strtok_r(NULL, " ", &saveptr);
 
-    // FIND WAY TO CHECK IF MORE ARGUMENTS THEN CHECK WHAT KIND TOMORROW
-    // Parse arguments
-    if(token != NULL && strcmp(token, "<") != 0 && strcmp(token, ">") != 0 && strcmp(token, "&") != 0)
+    while (token != NULL)
     {
-        token = strtok_r(input, " ", &saveptr);
-        currCommand->args = calloc(strlen(token) + 1, sizeof(char));
-        strcpy(currCommand->args, token);
-        printf("struct: %s\n", currCommand->args);
-    }
+         // Parse arguments
+        if(strcmp(token, "<") != 0 && strcmp(token, ">") != 0 && strcmp(token, "&") != 0)
+        {
+            // concatenate argument values to args string
+            currCommand->args = realloc(currCommand->args, sizeof(currCommand->args) + sizeof(token) + 1);
+            strcat(currCommand->args, token);
+            strcat(currCommand->args, " ");
+        }
 
-    // Parse input redirect filename
-    if (token != NULL && strcmp(token, "<") == 0)
-    {
-        // skip input character
-        token = strtok_r(input, " ", &saveptr);
-        token = strtok_r(input, " ", &saveptr);
-        currCommand->inputFile = calloc(strlen(token) + 1, sizeof(char));
-        strcpy(currCommand->inputFile, token);
-        printf("struct: %s\n", currCommand->inputFile);
-    }
+        // Parse input redirect filename
+        if (strcmp(token, "<") == 0)
+        {
+            // skip input character
+            token = strtok_r(NULL, " ", &saveptr);
+            currCommand->inputFile = calloc(strlen(token) + 1, sizeof(char));
+            strcpy(currCommand->inputFile, token);
+        }
 
-    // Parse output redirect filename
-    if (token != NULL && strcmp(token, ">") ==0)
-    {
-        // skip input character
-        token = strtok_r(input, " ", &saveptr);
-        token = strtok_r(input, " ", &saveptr);
-        currCommand->outputFile = calloc(strlen(token) + 1, sizeof(char));
-        strcpy(currCommand->outputFile, token);
-        printf("struct: %s\n", currCommand->outputFile);
-    }
+        // Parse output redirect filename
+        if (strcmp(token, ">") == 0)
+        {
+            // skip input character
+            token = strtok_r(NULL, " ", &saveptr);
+            currCommand->outputFile = calloc(strlen(token) + 1, sizeof(char));
+            strcpy(currCommand->outputFile, token);
+        }
 
-    // Check background argument and set
-    if (token != NULL && strcmp(token, "&") == 0)
-    {
-        currCommand->backgroundBool = 1;
-    }
-    else
-    {
-        currCommand->backgroundBool = 0;
-    }
-    printf("Boo: %d\n", currCommand->backgroundBool);
+        // Check background argument and set
+        if (strcmp(token, "&") == 0)
+        {
+            currCommand->backgroundBool = 1;
+        }
+        else
+        {
+            currCommand->backgroundBool = 0;
+        }
 
+        // iterate to next argument
+        token = strtok_r(NULL, " ", &saveptr);
+    }
     return currCommand;
 }
 
 /* grabs user input from stdin */
 char* getUserInput()
 {
-    char *input = calloc(512, sizeof(char));
-    fgets(input, 512, stdin);
+    char *input = calloc(2048, sizeof(char));
+    fgets(input, 2048, stdin);
 
     // remove newline from string
     char *pos;
@@ -99,6 +115,17 @@ char* getUserInput()
         fflush(stdout);
     }
     return input;
+}
+
+/* handles user input and runs correct command subroutine */
+void inputHandler(struct userCommand* currCommand)
+{
+    // handle blank line
+    if (currCommand != NULL)
+    {
+        printf("Command: %s, Arguments: %s, Input: %s, Output: %s, Background Bool: %d\n", currCommand->command, currCommand->args,
+     currCommand->inputFile, currCommand->outputFile, currCommand->backgroundBool);
+    }
 }
 
 /* main smallsh program driver */
@@ -120,11 +147,14 @@ void smallsh()
         struct userCommand *currCommand = parseUserInput(userInput);
 
         // handle input
-        // inputHandler(currCommand);
-
+        inputHandler(currCommand);
 
         // cleanup up the trash
+        if (currCommand != NULL)
+        {
+            cleanupStruct(currCommand);
+            free(currCommand);
+        }
         free(userInput);
-        free(currCommand);
     }
 }
