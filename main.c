@@ -1,3 +1,10 @@
-// include smallsh header file
+#include "smallsh.h"
 
-// just kicks off smallsh shell program
+
+// entry into smallsh
+int main()
+{
+    smallsh();
+    return 0;
+}
+
