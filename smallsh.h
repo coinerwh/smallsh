@@ -3,5 +3,5 @@
 struct userCommand* parseUserInput(char* input);
 char* getUserInput();
 void cleanupStruct(struct userCommand* currStruct);
-void inputHandler(struct userCommand* currCommand)
+void commandHandler(struct userCommand* currCommand);
 void smallsh();

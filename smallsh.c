@@ -118,7 +118,7 @@ char* getUserInput()
 }
 
 /* handles user input and runs correct command subroutine */
-void inputHandler(struct userCommand* currCommand)
+void commandHandler(struct userCommand* currCommand)
 {
     // handle blank line
     if (currCommand != NULL)
@@ -147,7 +147,7 @@ void smallsh()
         struct userCommand *currCommand = parseUserInput(userInput);
 
         // handle input
-        inputHandler(currCommand);
+        commandHandler(currCommand);
 
         // cleanup up the trash
         if (currCommand != NULL)
