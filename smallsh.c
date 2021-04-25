@@ -42,27 +42,24 @@ char *pidVarExpansion(char *token)
     pid_t pid = getpid();
     char pids[50];
     sprintf(pids, "%d", pid);
-    printf("pid: %s\n", pids);
 
     // setup expToken temp token and expansion pointer
-    char *expansionPtr = strstr(token, "$$");
     char *tempToken = calloc(strlen(token) +  1, sizeof(char));
     strcpy(tempToken, token);
     char *expToken = calloc(strlen(token) + strlen(pids) +  1, sizeof(char));
+    char *expansionPtr = strstr(tempToken, "$$");
 
     // expand token string and replace $$ with pid for every instance of $$
     while (expansionPtr != NULL)
     {
         // add character of token up to start of $$ to new token string
-        strncpy(expToken, tempToken, (int)(expansionPtr - tempToken));
+        strncat(expToken, tempToken, (int)(expansionPtr - tempToken));
 
         // concatenate pid
-        strcat(expToken, pids);
+        strncat(expToken, pids, strlen(pids));
 
         // concatenate rest of token string starting after $$ characters
-        printf("%s", expToken + 2);
-        fflush(stdout);
-        strcat(expToken, tempToken + 2);
+        strcat(expToken, tempToken + (int)(expansionPtr - tempToken) + strlen("$$"));
 
         // check for another expansion variable and expand token
         if ((expansionPtr = strstr(expToken, "$$")) != NULL)
