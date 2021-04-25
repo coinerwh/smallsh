@@ -36,16 +36,16 @@ struct userCommand* parseUserInput(char* input)
     // allocate space for parsed user command struct
     struct userCommand *currCommand = malloc(sizeof(struct userCommand));
 
+    // track length of args array and current
+    int argsSize = 4;
+    int argsNum = 0;
+
     // initialize array of argument pointers and current argument string
-    char *argsArray = calloc(argsSize, sizeof(char*));
+    char **argsArray = calloc(argsSize, sizeof(char*));
     char *currArg;
     
     // reentry pointer for strtok_r
     char *saveptr;
-
-    // track length of args array and current
-    int argsSize = 4;
-    int argsNum = 0;
 
     // // First token is command
     // char *token = strtok_r(input, " ", &saveptr);
@@ -69,11 +69,20 @@ struct userCommand* parseUserInput(char* input)
         strcpy(currArg, token);
 
         // save current argument string to array of arguments
-        
+        argsArray[argsNum++] = currArg;
+
+        // check if array size needs to be increased
+        if (argsNum == argsSize)
+        {
+            argsSize *= 2;
+            argsArray = realloc(argsArray, argsSize * sizeof(char*));
+        }
 
         // iterate to next argument
         token = strtok_r(NULL, " ", &saveptr);
     }
+
+    currCommand->args = argsArray;
 
     // Parse input redirect filename
     if (token != NULL && strcmp(token, "<") == 0)
@@ -135,7 +144,7 @@ void commandHandler(struct userCommand* currCommand)
     if (currCommand != NULL)
     {   
         // handle comment line
-        if (strncmp(currCommand->command, "#", 1) == 0)
+        if (strncmp(currCommand->args[0], "#", 1) == 0)
         {
             printf("Comment\n");
         }
@@ -148,8 +157,8 @@ void smallsh()
     //  User input setup variables
     char *userInput;
 
-    // while(1)
-    // {
+    while(1)
+    {
         printf(": ");
         fflush(stdout);
 
@@ -172,5 +181,5 @@ void smallsh()
             free(currCommand);
         }
         free(userInput);
-    // }
+    }
 }
