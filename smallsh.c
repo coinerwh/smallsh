@@ -14,8 +14,7 @@
 // frees struct member memory
 void cleanupStruct(struct userCommand* currStruct)
 {
-    free(currStruct->command);
-    currStruct->command = 0;
+    // cleanup array of strings!!!!
     free(currStruct->args);
     currStruct->args = 0;
     free(currStruct->inputFile);
@@ -36,64 +35,76 @@ struct userCommand* parseUserInput(char* input)
     }
     // allocate space for parsed user command struct
     struct userCommand *currCommand = malloc(sizeof(struct userCommand));
+
+    // initialize array of argument pointers and current argument string
+    char *argsArray = calloc(argsSize, sizeof(char*));
+    char *currArg;
     
     // reentry pointer for strtok_r
     char *saveptr;
 
-    // First token is command
+    // track length of args array and current
+    int argsSize = 4;
+    int argsNum = 0;
+
+    // // First token is command
+    // char *token = strtok_r(input, " ", &saveptr);
+    // currCommand->command = calloc(strlen(token) + 1, sizeof(char));
+    // strcpy(currCommand->command, token);
+
+    // // //initialize args string array
+    // currCommand->args = calloc(strlen("\0") + 1, sizeof(char));
+    // strcpy(currCommand->args, "\0");
+
+
+    // start from first argument
     char *token = strtok_r(input, " ", &saveptr);
-    currCommand->command = calloc(strlen(token) + 1, sizeof(char));
-    strcpy(currCommand->command, token);
 
-    // //initialize args string array
-    currCommand->args = calloc(strlen("\0") + 1, sizeof(char));
-    strcpy(currCommand->args, "\0");
 
-    // start from next argument
-    token = strtok_r(NULL, " ", &saveptr);
-
-    while (token != NULL)
+    // Parse arguments
+    while (token != NULL && strcmp(token, "<") != 0 && strcmp(token, ">") != 0 && strcmp(token, "&") != 0)
     {
-         // Parse arguments
-        if(strcmp(token, "<") != 0 && strcmp(token, ">") != 0 && strcmp(token, "&") != 0)
-        {
-            // concatenate argument values to args string
-            currCommand->args = realloc(currCommand->args, sizeof(currCommand->args) + sizeof(token) + 1);
-            strcat(currCommand->args, token);
-            strcat(currCommand->args, " ");
-        }
+        // create argument string
+        currArg = calloc(strlen(token) + 1, sizeof(char));
+        strcpy(currArg, token);
 
-        // Parse input redirect filename
-        if (strcmp(token, "<") == 0)
-        {
-            // skip input character
-            token = strtok_r(NULL, " ", &saveptr);
-            currCommand->inputFile = calloc(strlen(token) + 1, sizeof(char));
-            strcpy(currCommand->inputFile, token);
-        }
-
-        // Parse output redirect filename
-        if (strcmp(token, ">") == 0)
-        {
-            // skip input character
-            token = strtok_r(NULL, " ", &saveptr);
-            currCommand->outputFile = calloc(strlen(token) + 1, sizeof(char));
-            strcpy(currCommand->outputFile, token);
-        }
-
-        // Check background argument and set
-        if (strcmp(token, "&") == 0)
-        {
-            currCommand->backgroundBool = 1;
-        }
-        else
-        {
-            currCommand->backgroundBool = 0;
-        }
+        // save current argument string to array of arguments
+        
 
         // iterate to next argument
         token = strtok_r(NULL, " ", &saveptr);
     }
+
+    // Parse input redirect filename
+    if (token != NULL && strcmp(token, "<") == 0)
+    {
+        // skip input character
+        token = strtok_r(NULL, " ", &saveptr);
+        currCommand->inputFile = calloc(strlen(token) + 1, sizeof(char));
+        strcpy(currCommand->inputFile, token);
+        token = strtok_r(NULL, " ", &saveptr);
+    }
+
+    // Parse output redirect filename
+    if (token != NULL && strcmp(token, ">") == 0)
+    {
+        // skip input character
+        token = strtok_r(NULL, " ", &saveptr);
+        currCommand->outputFile = calloc(strlen(token) + 1, sizeof(char));
+        strcpy(currCommand->outputFile, token);
+        token = strtok_r(NULL, " ", &saveptr);
+    }
+
+    // Check background argument and set
+    if (token != NULL && strcmp(token, "&") == 0)
+    {
+        currCommand->backgroundBool = 1;
+    }
+    else
+    {
+        currCommand->backgroundBool = 0;
+    }
+
     return currCommand;
 }
 
@@ -122,9 +133,12 @@ void commandHandler(struct userCommand* currCommand)
 {
     // handle blank line
     if (currCommand != NULL)
-    {
-        printf("Command: %s, Arguments: %s, Input: %s, Output: %s, Background Bool: %d\n", currCommand->command, currCommand->args,
-     currCommand->inputFile, currCommand->outputFile, currCommand->backgroundBool);
+    {   
+        // handle comment line
+        if (strncmp(currCommand->command, "#", 1) == 0)
+        {
+            printf("Comment\n");
+        }
     }
 }
 
@@ -134,8 +148,8 @@ void smallsh()
     //  User input setup variables
     char *userInput;
 
-    while(1)
-    {
+    // while(1)
+    // {
         printf(": ");
         fflush(stdout);
 
@@ -145,6 +159,8 @@ void smallsh()
 
         // parse input and create parsed command struct
         struct userCommand *currCommand = parseUserInput(userInput);
+
+        // check for and perform variable expansion
 
         // handle input
         commandHandler(currCommand);
@@ -156,5 +172,5 @@ void smallsh()
             free(currCommand);
         }
         free(userInput);
-    }
+    // }
 }
