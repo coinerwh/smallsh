@@ -14,18 +14,18 @@
 // frees struct member memory
 void cleanupStruct(struct userCommand* currStruct)
 {
-   // cleanup array of strings
-   int i = 0;
+    // cleanup array of strings
+    int i = 0;
     while(currStruct->args[i] != 0)
     {
         free(currStruct->args[i]);
         i++;
     }
     free(currStruct->args);
-    free(currStruct->inputFile);
-    currStruct->inputFile = 0;
-    free(currStruct->outputFile);
-    currStruct->outputFile = 0;
+    if (currStruct->inputFile != NULL)
+        free(currStruct->inputFile);
+    if (currStruct->outputFile != NULL)
+        free(currStruct->outputFile);
     currStruct->backgroundBool = 0;
 }
 
@@ -69,15 +69,13 @@ char *pidVarExpansion(char *token)
             expToken = calloc(strlen(expToken) + strlen(pids) + 1, sizeof(char));
         }
     }
-    free(tempToken);
-    printf("expanded: %s\n", expToken);
+    // free(tempToken);
     return expToken;
 }
 
 /* parses user input and stores elements in struct */
 struct userCommand* parseUserInput(char* input)
 {
-    printf("%s\n", input);
     // handle blank line
     if (strcmp(input, "\0") == 0)
     {
@@ -85,6 +83,10 @@ struct userCommand* parseUserInput(char* input)
     }
     // allocate space for parsed user command struct
     struct userCommand *currCommand = malloc(sizeof(struct userCommand));
+
+    // initialize pointers to null
+    currCommand->inputFile = NULL;
+    currCommand->outputFile = NULL;
 
     // track length of args array and current
     int argsSize = 4;
@@ -129,25 +131,31 @@ struct userCommand* parseUserInput(char* input)
     // set struct args pointer to array
     currCommand->args = argsArray;
 
-    // Parse input redirect filename
-    if (token != NULL && strcmp(token, "<") == 0)
+    // handle input and output arguments
+    while (token != NULL && (strcmp(token, "<") == 0 || strcmp(token, ">") == 0))
     {
-        // skip input character
-        token = strtok_r(NULL, " ", &saveptr);
-        currCommand->inputFile = calloc(strlen(token) + 1, sizeof(char));
-        strcpy(currCommand->inputFile, token);
+        // Parse input redirect filename
+        if (token != NULL && strcmp(token, "<") == 0)
+        {
+            // skip input character
+            token = strtok_r(NULL, " ", &saveptr);
+            token = pidVarExpansion(token);
+            currCommand->inputFile = calloc(strlen(token) + 1, sizeof(char));
+            strcpy(currCommand->inputFile, token);
 
-        token = strtok_r(NULL, " ", &saveptr);
-    }
+            token = strtok_r(NULL, " ", &saveptr);
+        }
 
-    // Parse output redirect filename
-    if (token != NULL && strcmp(token, ">") == 0)
-    {
-        // skip input character
-        token = strtok_r(NULL, " ", &saveptr);
-        currCommand->outputFile = calloc(strlen(token) + 1, sizeof(char));
-        strcpy(currCommand->outputFile, token);
-        token = strtok_r(NULL, " ", &saveptr);
+        // Parse output redirect filename
+        if (token != NULL && strcmp(token, ">") == 0)
+        {
+            // skip input character
+            token = strtok_r(NULL, " ", &saveptr);
+            token = pidVarExpansion(token);
+            currCommand->outputFile = calloc(strlen(token) + 1, sizeof(char));
+            strcpy(currCommand->outputFile, token);
+            token = strtok_r(NULL, " ", &saveptr);
+        }
     }
 
     // Check background argument and set
@@ -197,6 +205,22 @@ void commandHandler(struct userCommand* currCommand)
     }
 }
 
+void printCommandStruct(struct userCommand* currStruct)
+{
+    if (currStruct != NULL)
+    {
+        int i = 0;
+        while(currStruct->args[i] != 0)
+        {
+            printf("Arg: %s\n", currStruct->args[i]);
+            i++;
+        }
+        printf("Input: %s\n", currStruct->inputFile);
+        printf("Output: %s\n", currStruct->outputFile);
+        printf("Background: %d\n", currStruct->backgroundBool);
+    }
+}
+
 /* main smallsh program driver */
 void smallsh()
 {
@@ -215,7 +239,7 @@ void smallsh()
         // parse input and create parsed command struct
         struct userCommand *currCommand = parseUserInput(userInput);
 
-        // check for and perform variable expansion
+        printCommandStruct(currCommand);
 
         // handle input
         commandHandler(currCommand);
