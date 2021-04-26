@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "command_struct.h"
-#include "builtin_cmd.h"
+#include "commands.h"
 
 /*
     main smallsh.c driver and input handler functions
@@ -66,11 +66,10 @@ char *pidVarExpansion(char *token)
         if ((expansionPtr = strstr(expToken, "$$")) != NULL)
         {
             tempToken = realloc(expToken, strlen(expToken));
-
             expToken = calloc(strlen(expToken) + strlen(pids) + 1, sizeof(char));
         }
     }
-    // free(tempToken);
+    free(tempToken);
     return expToken;
 }
 
@@ -120,6 +119,8 @@ struct userCommand* parseUserInput(char* input)
         {
             argsSize *= 2;
             argsArray = realloc(argsArray, argsSize * sizeof(char*));
+            // set all new elements to 0 to bound args
+            memset(argsArray+(argsSize / 2), 0, sizeof(char*) * (argsSize - (argsSize / 2)));
         }
 
         // iterate to next argument
@@ -214,11 +215,11 @@ void commandHandler(struct userCommand* currCommand)
         {
             status_cmd();
         }
-        // // handle any other command
-        // else
-        // {
-        //     other_cmd(currCommand);
-        // }
+        // handle any other command
+        else
+        {
+            other_cmd(currCommand);
+        }
     }
 }
 
