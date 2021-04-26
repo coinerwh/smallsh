@@ -66,7 +66,7 @@ char *pidVarExpansion(char *token)
         if ((expansionPtr = strstr(expToken, "$$")) != NULL)
         {
             tempToken = realloc(expToken, strlen(expToken));
-            expToken = calloc(strlen(expToken) + strlen(pids) + 1, sizeof(char));
+            memset(expToken, 0, sizeof(char*) * strlen(tempToken + strlen(pids)));
         }
     }
     free(tempToken);
@@ -190,7 +190,7 @@ char* getUserInput()
 }
 
 /* handles user input and runs correct command subroutine */
-void commandHandler(struct userCommand* currCommand, char *status)
+void commandHandler(struct userCommand* currCommand, char *status, char *userInput)
 {
     // handle blank line
     if (currCommand != NULL)
@@ -203,7 +203,7 @@ void commandHandler(struct userCommand* currCommand, char *status)
         // handle exit command
         else if (strcmp(currCommand->args[0], "exit") == 0)
         {
-            exit_cmd();
+            exit_cmd(status, currCommand, userInput);
         }
         // handle cd command
         else if (strcmp(currCommand->args[0], "cd") == 0)
@@ -256,7 +256,6 @@ void smallsh()
 
         // get user command input
         userInput = getUserInput();
-        // printf("%s\n", userInput);
 
         // parse input and create parsed command struct
         struct userCommand *currCommand = parseUserInput(userInput);
@@ -264,7 +263,7 @@ void smallsh()
         // printCommandStruct(currCommand);
 
         // handle input
-        commandHandler(currCommand, status);
+        commandHandler(currCommand, status, userInput);
 
         // cleanup up the trash
         if (currCommand != NULL)

@@ -5,17 +5,31 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "command_struct.h"
+#include "smallsh.h"
 
 /*
     Command functions
 */
 
-void exit_cmd()
+/* kills all processes and jobs that smallsh has stated, frees memory, and exits stage left */
+void exit_cmd(char *status, struct userCommand *currCommand, char *userInput)
 {
+    // clean up mess before leaving
+    if (currCommand != NULL)
+        {
+            cleanupStruct(currCommand);
+            free(currCommand);
+        }
+    free(userInput);
+    free(status);
+
+    // that's all folks
     exit(EXIT_SUCCESS);
 }
 
+/* changes current directory to either HOME path if no argument provided or path provided by user */
 void cd_cmd(struct userCommand *currCommand)
 {
     // set current working directory to directory specific by HOME env variable
@@ -39,26 +53,58 @@ void cd_cmd(struct userCommand *currCommand)
     
 }
 
+/* prints exit status or terminating signal of last foreground process ran by shell */
 void status_cmd(char *status)
 {
     printf("%s\n", status);
     fflush(stdout);
 }
 
+/* handles any non-builtin commands and executes via child process */
 void system_cmd(struct userCommand *currCommand, char *status)
 {
-    pid_t spawnid = fork();
-    switch (spawnid)
+    pid_t spawnPid = -5;
+    int childStatus;
+    int childPid = -5;
+
+    // forking child process to spin off system command execution
+    spawnPid = fork();
+    switch (spawnPid)
     {
         // if fork and creation of child proces fails
         case -1:
             printf("fork() failed\n");
             fflush(stdout);
-            memset(status, 0, sizeof(status));
+            memset(status, 0, strlen(status));
             strcpy(status, "Exit status 1");
             break;
-        // child code
+        // child process
         case 0:
+            // do all the fancy command things plz
+            printf("I am a child. My pid = %d\n", getpid());
+            break;
+        // parent shell process
+        default:
+            childPid = waitpid(childPid, &childStatus, 0);
+            // exited normally with exit status
+            if(WIFEXITED(childStatus))
+            {
+                // grab status value
+                childStatus = WEXITSTATUS(childStatus);
 
+                // reset string and set new status
+                memset(status, 0, strlen(status));
+                sprintf(status, "exit status %d", childStatus);
+            }
+            // exited abnormally with signal
+            else
+            {
+                childStatus = WTERMSIG(childStatus);
+
+                // reset string and set new status
+                memset(status, 0, strlen(status));
+                sprintf(status, "terminated by signal %d", childStatus);
+            }
+            break;
     } 
 }
