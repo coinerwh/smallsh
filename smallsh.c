@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include "command_struct.h"
+#include "builtin_cmd.h"
 
 /*
     main smallsh.c driver and input handler functions
@@ -98,9 +99,6 @@ struct userCommand* parseUserInput(char* input)
     
     // reentry pointer for strtok_r
     char *saveptr;
-
-    // dynamic memory allocation for PID variable token expansion
-    // int memAllocBool = 0;
 
     // start from first argument
     char *token = strtok_r(input, " ", &saveptr);
@@ -199,9 +197,28 @@ void commandHandler(struct userCommand* currCommand)
         // handle comment line
         if (strncmp(currCommand->args[0], "#", 1) == 0)
         {
-            printf("Comment\n");
+            return;
         }
-        
+        // handle exit command
+        else if (strcmp(currCommand->args[0], "exit") == 0)
+        {
+            exit_cmd();
+        }
+        // handle cd command
+        else if (strcmp(currCommand->args[0], "cd") == 0)
+        {
+            cd_cmd(currCommand);
+        }
+        // handle status command
+        else if (strcmp(currCommand->args[0], "status") == 0)
+        {
+            status_cmd();
+        }
+        // // handle any other command
+        // else
+        // {
+        //     other_cmd(currCommand);
+        // }
     }
 }
 
