@@ -190,7 +190,7 @@ char* getUserInput()
 }
 
 /* handles user input and runs correct command subroutine */
-void commandHandler(struct userCommand* currCommand)
+void commandHandler(struct userCommand* currCommand, char *status)
 {
     // handle blank line
     if (currCommand != NULL)
@@ -213,12 +213,12 @@ void commandHandler(struct userCommand* currCommand)
         // handle status command
         else if (strcmp(currCommand->args[0], "status") == 0)
         {
-            status_cmd();
+            status_cmd(status);
         }
         // handle any other command
         else
         {
-            other_cmd(currCommand);
+            system_cmd(currCommand, status);
         }
     }
 }
@@ -245,6 +245,10 @@ void smallsh()
     //  User input setup variables
     char *userInput;
 
+    // holds exit status or terminating signal of last foreground process
+    char *status = calloc(100, sizeof(char));
+    strcpy(status, "exit status 0");
+
     while(1)
     {
         printf(": ");
@@ -257,10 +261,10 @@ void smallsh()
         // parse input and create parsed command struct
         struct userCommand *currCommand = parseUserInput(userInput);
 
-        printCommandStruct(currCommand);
+        // printCommandStruct(currCommand);
 
         // handle input
-        commandHandler(currCommand);
+        commandHandler(currCommand, status);
 
         // cleanup up the trash
         if (currCommand != NULL)

@@ -13,42 +13,52 @@
 
 void exit_cmd()
 {
-    printf("I exited...not\n");
+    exit(EXIT_SUCCESS);
 }
 
 void cd_cmd(struct userCommand *currCommand)
 {
     // set current working directory to directory specific by HOME env variable
-    char curr_dir[100];
     if (currCommand->args[1] == 0)
     {
-        getcwd(curr_dir, 100);
-        printf("Curr: %s\n", curr_dir);
+        
         char *homeDir = getenv("HOME");
         chdir(homeDir);
-        getcwd(curr_dir, 100);
-        printf("Curr: %s\n", curr_dir);
     }
     // set current working directory to user defined absolute or relative path
     else
     {
         // grabs directory argument
-        getcwd(curr_dir, 100);
-        printf("Curr: %s\n", curr_dir);
         char *cd_dir = currCommand->args[1];
-        chdir(cd_dir);
-        getcwd(curr_dir, 100);
-        printf("Curr: %s\n", curr_dir);
+        if(chdir(cd_dir))
+        {
+            printf("Directory does not exist\n");
+            fflush(stdout);
+        }
     }
     
 }
 
-void status_cmd()
+void status_cmd(char *status)
 {
-    printf("Status..I guess\n");
+    printf("%s\n", status);
+    fflush(stdout);
 }
 
-void other_cmd(struct userCommand *currCommand)
+void system_cmd(struct userCommand *currCommand, char *status)
 {
-    printf("Executed: %s\n", currCommand->args[0]);
+    pid_t spawnid = fork();
+    switch (spawnid)
+    {
+        // if fork and creation of child proces fails
+        case -1:
+            printf("fork() failed\n");
+            fflush(stdout);
+            memset(status, 0, sizeof(status));
+            strcpy(status, "Exit status 1");
+            break;
+        // child code
+        case 0:
+
+    } 
 }
