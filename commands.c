@@ -80,8 +80,11 @@ void system_cmd(struct userCommand *currCommand, char *status)
             break;
         // child process
         case 0:
-            // do all the fancy command things plz
-            printf("I am a child. My pid = %d\n", getpid());
+            // printf("I am a child. My pid = %d\n", getpid());
+            // executes command provided by input and catches any errors
+            execvp(currCommand->args[0], currCommand->args);
+            perror("Error: ");
+            exit(EXIT_FAILURE);
             break;
         // parent shell process
         default:
