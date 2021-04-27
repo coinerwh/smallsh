@@ -35,7 +35,6 @@ void cd_cmd(struct userCommand *currCommand)
     // set current working directory to directory specific by HOME env variable
     if (currCommand->args[1] == 0)
     {
-        
         char *homeDir = getenv("HOME");
         chdir(homeDir);
     }
@@ -65,25 +64,25 @@ void system_cmd(struct userCommand *currCommand, char *status)
 {
     pid_t spawnPid = -5;
     int childStatus;
-    int childPid = -5;
+    int childPid = -1;
 
     // forking child process to spin off system command execution
     spawnPid = fork();
     switch (spawnPid)
     {
-        // if fork and creation of child proces fails
+        // if fork and creation of child process fails
         case -1:
             printf("fork() failed\n");
             fflush(stdout);
             memset(status, 0, strlen(status));
-            strcpy(status, "Exit status 1");
+            strcpy(status, "exit status 1");
             break;
         // child process
         case 0:
             // printf("I am a child. My pid = %d\n", getpid());
             // executes command provided by input and catches any errors
             execvp(currCommand->args[0], currCommand->args);
-            perror("Error: ");
+            perror("Error");
             exit(EXIT_FAILURE);
             break;
         // parent shell process
