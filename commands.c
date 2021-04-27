@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 #include "command_struct.h"
 #include "smallsh.h"
 
@@ -80,9 +81,47 @@ void system_cmd(struct userCommand *currCommand, char *status)
         // child process
         case 0:
             // printf("I am a child. My pid = %d\n", getpid());
+
+            // check for input redirection
+            if (currCommand->inputFile != NULL)
+            {
+                // open input file
+                int sourceFD = open(currCommand->inputFile, O_RDONLY);
+                if (sourceFD == -1)
+                {
+                    perror("source open()");
+                    exit(EXIT_FAILURE);
+                }
+                int result = dup2(sourceFD, 0);
+                if (result == -1)
+                {
+                    perror("source dup2()");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            // check for output redirection
+            if (currCommand->outputFile != NULL)
+            {
+                // open output file
+                int targetFD = open(currCommand->outputFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                if (targetFD == -1)
+                {
+                    perror("target open()");
+                    exit(EXIT_FAILURE);
+                }
+                int result = dup2(targetFD, 1);
+                if (result == -1)
+                {
+                    perror("target dup2()");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
             // executes command provided by input and catches any errors
             execvp(currCommand->args[0], currCommand->args);
             perror("Error");
+            fflush(stderr);
             exit(EXIT_FAILURE);
             break;
         // parent shell process

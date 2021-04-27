@@ -66,7 +66,9 @@ char *pidVarExpansion(char *token)
         if ((expansionPtr = strstr(expToken, "$$")) != NULL)
         {
             tempToken = realloc(expToken, strlen(expToken));
-            memset(expToken, 0, sizeof(char) * (strlen(tempToken) + strlen(pids)));
+            // strcpy(tempToken, expToken);
+            // free(expToken);
+            expToken = calloc(strlen(tempToken) + strlen(pids), sizeof(char));
         }
     }
     free(tempToken);
