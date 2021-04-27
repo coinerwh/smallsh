@@ -1,0 +1,11 @@
+commands.c
+commands.h
+command_struct.h
+main.c
+out.txt
+p3testscript
+smallsh
+smallsh.c
+smallsh.h
+smallshscript.sh
+testscript.sh
