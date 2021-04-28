@@ -1,5 +1,7 @@
 // User command struct to store parsed user input 
 
+#ifndef USERCOMMAND
+#define USERCOMMAND
 struct userCommand
 {
     // Pointer to an array of command arguments
@@ -11,3 +13,4 @@ struct userCommand
     // background argument
     int backgroundBool;
 };
+#endif

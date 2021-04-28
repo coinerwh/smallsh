@@ -9,13 +9,14 @@
 #include <fcntl.h>
 #include "command_struct.h"
 #include "smallsh.h"
+#include "childpid_functions.h"
 
 /*
     Command functions
 */
 
 /* kills all processes and jobs that smallsh has stated, frees memory, and exits stage left */
-void exit_cmd(char *status, struct userCommand *currCommand, char *userInput)
+void exit_cmd(char *status, struct userCommand *currCommand, char *userInput, struct childpidStruct *childPids)
 {
     // clean up mess before leaving
     if (currCommand != NULL)
@@ -25,6 +26,15 @@ void exit_cmd(char *status, struct userCommand *currCommand, char *userInput)
         }
     free(userInput);
     free(status);
+
+    // kill all leftover background pids
+    for (int i=0; i<childPids->num+1; i++)
+    {
+        kill(childPids->pidArray[i], SIGTERM);
+    }
+
+    free(childPids->pidArray);
+    free(childPids);
 
     // that's all folks
     exit(EXIT_SUCCESS);
@@ -60,7 +70,7 @@ void status_cmd(char *status)
     fflush(stdout);
 }
 
-void inputOutputRedirect(char* inputFile, char* outputFile)
+void inputOutputRedirect(char* inputFile, char* outputFile, int backgroundBool)
 {
     // check for input redirection
     if (inputFile != NULL)
@@ -97,14 +107,49 @@ void inputOutputRedirect(char* inputFile, char* outputFile)
             exit(EXIT_FAILURE);
         }
     }
+    // set to null if input or output not set
+    if (backgroundBool)
+    {
+        if (inputFile == NULL)
+        {
+            // open input file
+            int sourceFD = open("/dev/null",0);
+            if (sourceFD == -1)
+            {
+                perror("source open()");
+                exit(EXIT_FAILURE);
+            }
+            int result = dup2(sourceFD, 0);
+            if (result == -1)
+            {
+                perror("source dup2()");
+                exit(EXIT_FAILURE);
+            }
+        }
+        if (outputFile == NULL)
+        {
+            // open output file
+            int targetFD = open("/dev/null", O_WRONLY);
+            if (targetFD == -1)
+            {
+                perror("target open()");
+                exit(EXIT_FAILURE);
+            }
+            int result = dup2(targetFD, 1);
+            if (result == -1)
+            {
+                perror("target dup2()");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
 }
 
 /* handles any non-builtin commands and executes via child process */
-void system_cmd(struct userCommand *currCommand, char *status)
+void system_cmd(struct userCommand *currCommand, char *status, struct childpidStruct *childPids)
 {
     pid_t spawnPid = -5;
     int childStatus;
-    int childPid = -1;
 
     // forking child process to spin off system command execution
     spawnPid = fork();
@@ -119,10 +164,8 @@ void system_cmd(struct userCommand *currCommand, char *status)
             break;
         // child process
         case 0:
-            // printf("I am a child. My pid = %d\n", getpid());
-
             // input and output redirection
-            inputOutputRedirect(currCommand->inputFile, currCommand->outputFile);
+            inputOutputRedirect(currCommand->inputFile, currCommand->outputFile, currCommand->backgroundBool);
 
             // executes command provided by input and catches any errors
             execvp(currCommand->args[0], currCommand->args);
@@ -132,26 +175,37 @@ void system_cmd(struct userCommand *currCommand, char *status)
             break;
         // parent shell process
         default:
-            childPid = waitpid(childPid, &childStatus, 0);
-            // exited normally with exit status
-            if(WIFEXITED(childStatus))
+            // background & set
+            if (currCommand->backgroundBool)
             {
-                // grab status value
-                childStatus = WEXITSTATUS(childStatus);
-
-                // reset string and set new status
-                memset(status, 0, strlen(status));
-                sprintf(status, "exit status %d", childStatus);
+                printf("background pid is %d\n", spawnPid);
+                fflush(stdout);
+                add_pid(childPids, spawnPid);
+                break;
             }
-            // exited abnormally with signal
-            else
+            else 
             {
-                childStatus = WTERMSIG(childStatus);
+                spawnPid = waitpid(spawnPid, &childStatus, 0);
+                // exited normally with exit status
+                if(WIFEXITED(childStatus))
+                {
+                    // grab status value
+                    childStatus = WEXITSTATUS(childStatus);
 
-                // reset string and set new status
-                memset(status, 0, strlen(status));
-                sprintf(status, "terminated by signal %d", childStatus);
+                    // reset string and set new status
+                    memset(status, 0, strlen(status));
+                    sprintf(status, "exit status %d", childStatus);
+                }
+                // exited abnormally with signal
+                else
+                {
+                    childStatus = WTERMSIG(childStatus);
+
+                    // reset string and set new status
+                    memset(status, 0, strlen(status));
+                    sprintf(status, "terminated by signal %d", childStatus);
+                }
+                break;
             }
-            break;
     } 
 }

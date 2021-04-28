@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "command_struct.h"
 #include "commands.h"
+#include "childpid_functions.h"
 
 /*
     main smallsh.c driver and input handler functions
@@ -67,7 +68,7 @@ char *pidVarExpansion(char *token)
         {
             tempToken = realloc(expToken, strlen(expToken));
             // strcpy(tempToken, expToken);
-            // free(expToken);
+            free(expToken);
             expToken = calloc(strlen(tempToken) + strlen(pids), sizeof(char));
         }
     }
@@ -192,7 +193,7 @@ char* getUserInput()
 }
 
 /* handles user input and runs correct command subroutine */
-void commandHandler(struct userCommand* currCommand, char *status, char *userInput)
+void commandHandler(struct userCommand* currCommand, char *status, char *userInput, struct childpidStruct *childPids)
 {
     // handle blank line
     if (currCommand != NULL)
@@ -205,7 +206,7 @@ void commandHandler(struct userCommand* currCommand, char *status, char *userInp
         // handle exit command
         else if (strcmp(currCommand->args[0], "exit") == 0)
         {
-            exit_cmd(status, currCommand, userInput);
+            exit_cmd(status, currCommand, userInput, childPids);
         }
         // handle cd command
         else if (strcmp(currCommand->args[0], "cd") == 0)
@@ -220,7 +221,7 @@ void commandHandler(struct userCommand* currCommand, char *status, char *userInp
         // handle any other command
         else
         {
-            system_cmd(currCommand, status);
+            system_cmd(currCommand, status, childPids);
         }
     }
 }
@@ -248,10 +249,10 @@ void smallsh()
     char *userInput;
 
     // struct storing background child PIDs
-    struct childpidStruct* childPids = calloc(argsSize, sizeof(childStruct));
+    struct childpidStruct* childPids = malloc(sizeof(struct childpidStruct));
     childPids->arraySize = 4;
     childPids->num = 0;
-    childPids->pidArray = calloc(arraySize, sizeof(int));
+    childPids->pidArray = malloc(childPids->arraySize * sizeof(int));
 
 
 
@@ -261,6 +262,10 @@ void smallsh()
 
     while(1)
     {
+        // checks for any child processes that have terminated
+        check_pids(childPids);
+        printPids(childPids);
+
         printf(": ");
         fflush(stdout);
 
@@ -273,7 +278,7 @@ void smallsh()
         // printCommandStruct(currCommand);
 
         // handle input
-        commandHandler(currCommand, status, userInput);
+        commandHandler(currCommand, status, userInput, childPids);
 
         // cleanup up the trash
         if (currCommand != NULL)
