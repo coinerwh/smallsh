@@ -247,6 +247,14 @@ void smallsh()
     //  User input setup variables
     char *userInput;
 
+    // struct storing background child PIDs
+    struct childpidStruct* childPids = calloc(argsSize, sizeof(childStruct));
+    childPids->arraySize = 4;
+    childPids->num = 0;
+    childPids->pidArray = calloc(arraySize, sizeof(int));
+
+
+
     // holds exit status or terminating signal of last foreground process
     char *status = calloc(100, sizeof(char));
     strcpy(status, "exit status 0");
