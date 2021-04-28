@@ -264,7 +264,7 @@ void smallsh()
     {
         // checks for any child processes that have terminated
         check_pids(childPids);
-        printPids(childPids);
+        // printPids(childPids);
 
         printf(": ");
         fflush(stdout);
