@@ -8,6 +8,7 @@
 #include "command_struct.h"
 #include "commands.h"
 #include "childpid_functions.h"
+#include "signal_handlers.h"
 
 /*
     main smallsh.c driver and input handler functions
@@ -248,13 +249,14 @@ void smallsh()
     //  User input setup variables
     char *userInput;
 
+    // Standup signal handlers
+    shellSignalSetup();
+
     // struct storing background child PIDs
     struct childpidStruct* childPids = malloc(sizeof(struct childpidStruct));
     childPids->arraySize = 4;
     childPids->num = 0;
     childPids->pidArray = malloc(childPids->arraySize * sizeof(int));
-
-
 
     // holds exit status or terminating signal of last foreground process
     char *status = calloc(100, sizeof(char));

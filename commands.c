@@ -10,6 +10,7 @@
 #include "command_struct.h"
 #include "smallsh.h"
 #include "childpid_functions.h"
+#include "signal_handlers.h"
 
 /*
     Command functions
@@ -167,6 +168,17 @@ void system_cmd(struct userCommand *currCommand, char *status, struct childpidSt
             // input and output redirection
             inputOutputRedirect(currCommand->inputFile, currCommand->outputFile, currCommand->backgroundBool);
 
+            // background process signal handling
+            if (currCommand->backgroundBool)
+            {
+                signalBackgroundSetup();
+            }
+
+            // foreground process signal handling
+            else
+            {
+                signalForegroundSetup();
+            }
             // executes command provided by input and catches any errors
             execvp(currCommand->args[0], currCommand->args);
             perror("Error");
@@ -175,7 +187,7 @@ void system_cmd(struct userCommand *currCommand, char *status, struct childpidSt
             break;
         // parent shell process
         default:
-            // background & set
+            // background & set and child process running in background
             if (currCommand->backgroundBool)
             {
                 printf("background pid is %d\n", spawnPid);
@@ -203,6 +215,8 @@ void system_cmd(struct userCommand *currCommand, char *status, struct childpidSt
 
                     // reset string and set new status
                     memset(status, 0, strlen(status));
+                    printf("terminanated by signal %d\n", childStatus);
+                    fflush(stdout);
                     sprintf(status, "terminated by signal %d", childStatus);
                 }
                 break;

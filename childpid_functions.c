@@ -97,6 +97,7 @@ void check_pids(struct childpidStruct *childPids)
     }
 }
 
+// for testing child PID handling and array
 void printPids(struct childpidStruct *childPids)
 {
     for (int i=0; i<childPids->num; i++)

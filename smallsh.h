@@ -2,6 +2,8 @@
 
 #include "childpid_struct.h"
 
+int foregroundOnly;
+
 struct userCommand* parseUserInput(char* input);
 char* getUserInput();
 void cleanupStruct(struct userCommand* currStruct);
