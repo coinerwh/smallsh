@@ -14,6 +14,9 @@
     main smallsh.c driver and input handler functions
 */
 
+// foreground global switch initialized
+int foregroundOnly = 0;
+
 // frees struct member memory
 void cleanupStruct(struct userCommand* currStruct)
 {

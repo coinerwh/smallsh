@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include "smallsh.h"
 
 /*
     Functions for handling SIGINT and SIGTSTP signals
@@ -28,8 +29,20 @@ void SIGINT_handler(int signo)
 
 void SIGTSTP_handler(int signo)
 {
-    char* message = "Entering foreground-only mode (& is now ignored)\n";
-    write(STDOUT_FILENO, message, 50);
+    // setting program to foreground only
+    if (foregroundOnly == 0)
+    {
+        foregroundOnly = 1;
+        char* message = "Entering foreground-only mode (& is now ignored)\n";
+        write(STDOUT_FILENO, message, 50);
+    }
+    else
+    {
+        foregroundOnly = 0;
+        char* message = "Exiting foreground-only mode\n";
+        write(STDOUT_FILENO, message, 30);
+    }
+    
 }
 
 void SIGINT_child_handler(int signo)

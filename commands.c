@@ -169,7 +169,7 @@ void system_cmd(struct userCommand *currCommand, char *status, struct childpidSt
             inputOutputRedirect(currCommand->inputFile, currCommand->outputFile, currCommand->backgroundBool);
 
             // background process signal handling
-            if (currCommand->backgroundBool)
+            if (currCommand->backgroundBool && foregroundOnly == 0)
             {
                 signalBackgroundSetup();
             }
@@ -188,7 +188,7 @@ void system_cmd(struct userCommand *currCommand, char *status, struct childpidSt
         // parent shell process
         default:
             // background & set and child process running in background
-            if (currCommand->backgroundBool)
+            if (currCommand->backgroundBool && foregroundOnly == 0)
             {
                 printf("background pid is %d\n", spawnPid);
                 fflush(stdout);
