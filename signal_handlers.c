@@ -19,6 +19,7 @@
     Much of this module is inspired by the Signal Handling API Exploration as part of the OSU CS344 course 
 */ 
 
+/* testing handler  for SIGINT */
 void SIGINT_handler(int signo)
 {
     // Initialize SIGINT_action struct as empty
@@ -27,6 +28,7 @@ void SIGINT_handler(int signo)
     write(STDOUT_FILENO, message, 30);
 }
 
+// handles SIGSTP signal, flipping program to foreground only mode
 void SIGTSTP_handler(int signo)
 {
     // setting program to foreground only
@@ -45,12 +47,14 @@ void SIGTSTP_handler(int signo)
     
 }
 
+/* testing handler for SIGINT children */
 void SIGINT_child_handler(int signo)
 {
     char* message = "terminated by signal 2\n";
     write(STDOUT_FILENO, message, 24);
 }
 
+/* stand up signal handlers for shell */
 void shellSignalSetup()
 {
     // Initialize signal structs
@@ -74,6 +78,7 @@ void shellSignalSetup()
     sigaction(SIGTSTP, &SIGTSTP_action, NULL);
 }
 
+/* stand up signal handlers for foreground children */
 void signalForegroundSetup()
 {
     // Initialize signal structs
@@ -97,6 +102,7 @@ void signalForegroundSetup()
     sigaction(SIGTSTP, &SIGTSTP_action, NULL);
 }
 
+/* stand up signal handlers for background children */
 void signalBackgroundSetup()
 {
     // Initialize signal structs

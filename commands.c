@@ -71,6 +71,7 @@ void status_cmd(char *status)
     fflush(stdout);
 }
 
+/* handles input and output redirection. Checks both whether command is set to run in background and foreground mode of shell */
 void inputOutputRedirect(char* inputFile, char* outputFile, int backgroundBool)
 {
     // check for input redirection
@@ -108,8 +109,8 @@ void inputOutputRedirect(char* inputFile, char* outputFile, int backgroundBool)
             exit(EXIT_FAILURE);
         }
     }
-    // set to null if input or output not set
-    if (backgroundBool)
+    // set to null if input or output not set and foreground only mode is off
+    if (backgroundBool && foregroundOnly == 0)
     {
         if (inputFile == NULL)
         {

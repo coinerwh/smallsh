@@ -17,7 +17,7 @@
 // foreground global switch initialized
 int foregroundOnly = 0;
 
-// frees struct member memory
+/* frees struct member memory */
 void cleanupStruct(struct userCommand* currStruct)
 {
     // cleanup array of strings
@@ -230,6 +230,7 @@ void commandHandler(struct userCommand* currCommand, char *status, char *userInp
     }
 }
 
+/* For testing command struct */
 void printCommandStruct(struct userCommand* currStruct)
 {
     if (currStruct != NULL)
