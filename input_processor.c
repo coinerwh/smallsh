@@ -33,6 +33,7 @@ char *pidVarExpansion(char *token)
     char *expansionPtr = strstr(tempToken, "$$");
 
     // expand token string and replace $$ with pid for every instance of $$
+    // partially inspired by stackoverflow post here: https://stackoverflow.com/questions/2015901/inserting-char-string-into-another-char-string
     while (expansionPtr != NULL)
     {
         // add character of token up to start of $$ to new token string
@@ -49,7 +50,7 @@ char *pidVarExpansion(char *token)
         {
             tempToken = realloc(expToken, strlen(expToken));
             // strcpy(tempToken, expToken);
-            free(expToken);
+            // free(expToken);
             expToken = calloc(strlen(tempToken) + strlen(pids), sizeof(char));
         }
     }
@@ -88,15 +89,28 @@ struct userCommand* parseUserInput(char* input)
 
 
     // Parse arguments
-    while (token != NULL && strcmp(token, "<") != 0 && strcmp(token, ">") != 0 && strcmp(token, "&") != 0)
+    while (token != NULL && strcmp(token, "<") != 0 && strcmp(token, ">") != 0)
     {
         // create argument string
         token = pidVarExpansion(token);
         currArg = calloc(strlen(token) + 1, sizeof(char));
         strcpy(currArg, token);
 
-        // save current argument string to array of arguments
-        argsArray[argsNum++] = currArg;
+        // iterate to next argument
+        token = strtok_r(NULL, " ", &saveptr);
+
+        // check if & is last argument. If not, continue. If so, set backgroundBool but do not save to args array
+        if (strcmp(currArg, "&") == 0 && token == NULL)
+        {
+            currCommand->backgroundBool = 1;
+        }
+        else
+        {
+            currCommand->backgroundBool = 0;
+            // save current argument string to array of arguments
+            argsArray[argsNum++] = currArg;
+        }
+
 
         // check if array size needs to be increased
         if (argsNum == argsSize)
@@ -106,9 +120,6 @@ struct userCommand* parseUserInput(char* input)
             // set all new elements to 0 to bound args
             memset(argsArray+(argsSize / 2), 0, sizeof(char*) * (argsSize - (argsSize / 2)));
         }
-
-        // iterate to next argument
-        token = strtok_r(NULL, " ", &saveptr);
     }
 
     // set struct args pointer to array
@@ -141,15 +152,16 @@ struct userCommand* parseUserInput(char* input)
         }
     }
 
-    // Check background argument and set
-    if (token != NULL && strcmp(token, "&") == 0)
-    {
-        currCommand->backgroundBool = 1;
-    }
-    else
-    {
-        currCommand->backgroundBool = 0;
-    }
+    // // Check background argument and set
+    // if (token != NULL && strcmp(token, "&") == 0)
+    // {
+    //     currCommand->backgroundBool = 1;
+    // }
+    // else
+    // {
+    //     currCommand->backgroundBool = 0;
+    // }
+
     return currCommand;
 }
 
