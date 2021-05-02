@@ -153,14 +153,10 @@ struct userCommand* parseUserInput(char* input)
     }
 
     // // Check background argument and set
-    // if (token != NULL && strcmp(token, "&") == 0)
-    // {
-    //     currCommand->backgroundBool = 1;
-    // }
-    // else
-    // {
-    //     currCommand->backgroundBool = 0;
-    // }
+    if (token != NULL && strcmp(token, "&") == 0)
+    {
+        currCommand->backgroundBool = 1;
+    }
 
     return currCommand;
 }
