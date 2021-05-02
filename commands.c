@@ -35,6 +35,9 @@ void exit_cmd(char *status, struct userCommand *currCommand, char *userInput, st
         kill(childPids->pidArray[i], SIGTERM);
     }
 
+    //check pids
+    check_pids(childPids);
+
     free(childPids->pidArray);
     free(childPids);
 
