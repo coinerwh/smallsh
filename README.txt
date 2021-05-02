@@ -10,4 +10,4 @@ To compile with command:
 gcc -std=gnu99 -o smallsh -Wall main.c smallsh.c commands.c childpid_functions.c signal_handlers.c input_processor.c
 
 To execute:
-./movies_by_year
+./smallsh
