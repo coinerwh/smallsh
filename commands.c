@@ -11,6 +11,7 @@
 #include "smallsh.h"
 #include "childpid_functions.h"
 #include "signal_handlers.h"
+#include <signal.h>
 
 /*
     Command functions
@@ -29,7 +30,7 @@ void exit_cmd(char *status, struct userCommand *currCommand, char *userInput, st
     free(status);
 
     // kill all leftover background pids
-    for (int i=0; i<childPids->num+1; i++)
+    for (int i=0; i<childPids->num; i++)
     {
         kill(childPids->pidArray[i], SIGTERM);
     }
