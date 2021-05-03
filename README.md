@@ -1,4 +1,4 @@
-# Smallsh
+# smallsh
 
 Linux shell with built-in commands. All other commands run as child processes using fork() and exec(). Includes signal handlers, variable expansion, input and output redirection, background argument handling, and process status
 
