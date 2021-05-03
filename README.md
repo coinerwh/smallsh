@@ -10,7 +10,7 @@ POSIX shell with built-in commands. All other commands run as child processes us
 4. Variable $$ expansion. Replaces any instance of '$$' in a command with the process ID of smallsh itself
 5. Handles both blank lines and '#' comment lines
 6. All other commands are executing as child processes using fork() and exec()
-7. Input & output redirection with '<' and '>'
+7. Bash-style input & output redirection with '<' and '>'
 8. Commands including '&' at the end are ran as background processes, and the shell will not wait for the execution to complete. STDIN and STDOUT are redirected to /dev/null unless redirected
 9. Inludes signal handlers for SIGINT (CTRL+C) and SIGTSTP (CTRL+Z)
   > * SIGINT is ignored by shell and all background processes
