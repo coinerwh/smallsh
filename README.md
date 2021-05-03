@@ -1,7 +1,4 @@
-Wil Coiner
-4/28/21
-
-NOTE: No executable provided. Must compile to run
+# Smallsh
 
 To compile via shell script:
 ./smallshscript.sh
