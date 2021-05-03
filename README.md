@@ -14,9 +14,9 @@ POSIX shell with built-in commands. All other commands run as child processes us
 8. Commands including '&' at the end are ran as background processes, and the shell will not wait for the execution to complete. STDIN and STDOUT are redirected to /dev/null unless redirected
 9. Inludes signal handlers for SIGINT (CTRL+C) and SIGTSTP (CTRL+Z)
   > * SIGINT is ignored by shell and all background processes
-  * SIGINT terminates all foreground child processes, printing out PID of the process and the signal that killed it
-  * All child processes, foreground and background, ignore SIGTSTP
-  * SIGTSTP flips shell into 'foreground only mode' where '&' is ignored until shell receives SIGTSTP again
+  > * SIGINT terminates all foreground child processes, printing out PID of the process and the signal that killed it
+  > * All child processes, foreground and background, ignore SIGTSTP
+  > * SIGTSTP flips shell into 'foreground only mode' where '&' is ignored until shell receives SIGTSTP again
 
 ## C/POSIX API Tools
 
