@@ -1,6 +1,6 @@
 # smallsh
 
-Linux shell with built-in commands. All other commands run as child processes using fork() and exec(). Includes signal handlers, variable expansion, input and output redirection, background argument handling, and process status
+POSIX shell with built-in commands. All other commands run as child processes using fork() and exec(). Includes signal handlers, variable expansion, input and output redirection, background argument handling, and process status
 
 ## Features
 
@@ -13,6 +13,16 @@ Linux shell with built-in commands. All other commands run as child processes us
 7. Input & output redirection with '<' and '>'
 8. Commands including '&' at the end are ran as background processes, and the shell will not wait for the execution to complete. STDIN and STDOUT are redirected to /dev/null unless redirected
 9. Inludes signal handlers for SIGINT (CTRL+C) and SIGTSTP (CTRL+Z)
+  - SIGINT is ignored by shell and all background processes
+  - SIGINT terminates all foreground child processes, printing out PID of the process and the signal that killed it
+  - All child processes, foreground and background, ignore SIGTSTP
+  - SIGTSTP flips shell into 'foreground only mode' where '&' is ignored until shell receives SIGTSTP again
+
+## C/POSIX API Tools used
+
+- unistd POSIX OS API, including use of fork, exec, dup2 for redirection, chdir and other I/O primitives
+- wait and waitpid system calls for child process handling
+- POSIX signal handling with sigaction function and struct
 
 ## Compilation and execution
 
