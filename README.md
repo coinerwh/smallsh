@@ -26,11 +26,11 @@ POSIX shell with built-in commands. All other commands run as child processes us
 
 ## Compilation and execution
 
-To compile via shell script:
+Compile via shell script:
 ./smallshscript.sh
 
-To compile with command:
+Compile with command:
 gcc -std=gnu99 -o smallsh main.c smallsh.c commands.c childpid_functions.c signal_handlers.c input_processor.c
 
-To execute:
+Execute:
 ./smallsh
